@@ -15,7 +15,7 @@ const baseClass = clsx(
 );
 
 const variantClass = {
-  default: clsx("w-12", "hover:bg-slate-700"),
+  default: clsx("w-12", "hover:bg-white/10"),
   danger: clsx("w-12", "hover:bg-red-600", "hover:text-white"),
 };
 
