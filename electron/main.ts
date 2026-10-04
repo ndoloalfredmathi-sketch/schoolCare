@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 let splashWindow: BrowserWindow | null = null;
 let mainWindow: BrowserWindow | null = null;
 
-const isDevelopment = !app.isPackaged;
+const devServerUrl = process.env.VITE_DEV_SERVER_URL;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function createSplashWindow() {
@@ -21,8 +21,8 @@ function createSplashWindow() {
     roundedCorners: false,
   });
 
-  if (isDevelopment) {
-    splashWindow.loadURL("http://localhost:5173/splash.html");
+  if (devServerUrl) {
+    splashWindow.loadURL(`${devServerUrl}splash.html`);
   } else {
     splashWindow.loadFile(
       path.join(app.getAppPath(), "dist", "splash.html")
@@ -44,14 +44,14 @@ function createMainWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      preload: path.join(__dirname, "preload.cjs"),
+      preload: path.join(__dirname, "preload.mjs"),
     },
   });
 
   mainWindow.setMenu(null);
 
-  if (isDevelopment) {
-    mainWindow.loadURL("http://localhost:5173");
+  if (devServerUrl) {
+    mainWindow.loadURL(devServerUrl);
   } else {
     mainWindow.loadFile(
       path.join(app.getAppPath(), "dist", "index.html")
