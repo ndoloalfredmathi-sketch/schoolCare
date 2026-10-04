@@ -1,16 +1,55 @@
 @import "tailwindcss";
 
+@plugin "daisyui";
+
+@plugin "daisyui/theme" {
+  name: "schoolcare";
+  default: true;
+  color-scheme: dark;
+
+  /* Surfaces — quasi-noir neutre (page < carte < contrôle) */
+  --color-base-100: #0a0a0a;
+  --color-base-200: #141414;
+  --color-base-300: #1c1c1c;
+  --color-base-content: #fafafa;
+
+  /* La pilule blanche porte l'action principale et l'onglet actif */
+  --color-primary: #ffffff;
+  --color-primary-content: #0a0a0a;
+
+  --color-secondary: #a855f7;
+  --color-secondary-content: #ffffff;
+
+  --color-accent: #34d399;
+  --color-accent-content: #052e16;
+
+  --color-neutral: #1c1c1c;
+  --color-neutral-content: #fafafa;
+
+  --color-info: #22d3ee;
+  --color-info-content: #04303a;
+
+  --color-success: #34d399;
+  --color-success-content: #052e16;
+
+  --color-warning: #fde047;
+  --color-warning-content: #292204;
+
+  --color-error: #f43f5e;
+  --color-error-content: #3b0414;
+
+  --radius-selector: 9999px;
+  --radius-field: 9999px;
+  --radius-box: 1rem;
+
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+
+  --border: 1px;
+}
+
 @theme {
   --font-sans: "DM Sans", sans-serif;
-
-  /* Surfaces — dark unifié */
-  --color-chrome: #020617;
-  --color-panel: #0f172a;
-  --color-canvas: #1e293b;
-  --color-line: #334155;
-
-  /* Accent unique */
-  --color-accent: #2563eb;
 }
 
 html,
@@ -22,5 +61,5 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: var(--color-chrome);
+  background-color: var(--color-base-100);
 }

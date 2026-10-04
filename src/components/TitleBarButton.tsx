@@ -10,13 +10,13 @@ type TitleBarButtonProps = {
 };
 
 const baseClass = clsx(
-  "flex items-center justify-center text-slate-300",
+  "flex items-center justify-center text-base-content/80",
   "transition-colors"
 );
 
 const variantClass = {
-  default: clsx("w-12", "hover:bg-white/10"),
-  danger: clsx("w-12", "hover:bg-red-600", "hover:text-white"),
+  default: clsx("w-12", "hover:bg-base-content/10"),
+  danger: clsx("w-12", "hover:bg-error", "hover:text-error-content"),
 };
 
 function TitleBarButton({

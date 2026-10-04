@@ -1,13 +1,23 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import TitleBar from "./components/TitleBar";
+import AppHeader from "./components/AppHeader";
 import SideBar from "./components/SideBar";
+import HomePage from "./pages/HomePage";
 import PlaceholderPage from "./pages/PlaceholderPage";
-import { navigation } from "./navigation";
+import { navigation, periodTabs } from "./navigation";
 
 function App() {
+  const { pathname } = useLocation();
+
+  const current = navigation.find((item) => item.to === pathname);
+  const title = current?.label ?? "Accueil";
+  const Icon = current?.icon ?? navigation[0].icon;
+  const tabs = pathname === "/" ? periodTabs : undefined;
+
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden bg-canvas">
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-base-100">
       <TitleBar />
+      <AppHeader title={title} icon={Icon} tabs={tabs} />
 
       <div className="flex min-h-0 flex-1">
         <SideBar />
@@ -18,7 +28,13 @@ function App() {
               <Route
                 key={to}
                 path={to}
-                element={<PlaceholderPage title={label} />}
+                element={
+                  to === "/" ? (
+                    <HomePage />
+                  ) : (
+                    <PlaceholderPage title={label} />
+                  )
+                }
               />
             ))}
             <Route path="*" element={<Navigate to="/" replace />} />

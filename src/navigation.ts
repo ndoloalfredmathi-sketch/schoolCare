@@ -1,9 +1,9 @@
 import {
-  CalendarCheck,
+  CalendarX,
   ChartColumn,
   GraduationCap,
   HeartPulse,
-  House,
+  LayoutGrid,
   Settings,
   Users,
   UsersRound,
@@ -16,13 +16,39 @@ export type NavigationItem = {
   icon: LucideIcon;
 };
 
-export const navigation: NavigationItem[] = [
-  { to: "/", label: "Accueil", icon: House },
-  { to: "/classes", label: "Classes", icon: GraduationCap },
-  { to: "/eleves", label: "Élèves", icon: Users },
-  { to: "/absences", label: "Absences", icon: CalendarCheck },
-  { to: "/infirmerie", label: "Infirmerie", icon: HeartPulse },
-  { to: "/parents", label: "Parents", icon: UsersRound },
-  { to: "/rapports", label: "Rapports", icon: ChartColumn },
-  { to: "/parametres", label: "Paramètres", icon: Settings },
+export type NavigationSection = {
+  label: string;
+  items: NavigationItem[];
+};
+
+export const navigationSections: NavigationSection[] = [
+  {
+    label: "Établissement",
+    items: [
+      { to: "/", label: "Accueil", icon: LayoutGrid },
+      { to: "/classes", label: "Classes", icon: GraduationCap },
+      { to: "/eleves", label: "Élèves", icon: Users },
+    ],
+  },
+  {
+    label: "Suivi santé",
+    items: [
+      { to: "/absences", label: "Absences", icon: CalendarX },
+      { to: "/infirmerie", label: "Infirmerie", icon: HeartPulse },
+      { to: "/parents", label: "Parents", icon: UsersRound },
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
+      { to: "/rapports", label: "Rapports", icon: ChartColumn },
+      { to: "/parametres", label: "Paramètres", icon: Settings },
+    ],
+  },
 ];
+
+export const navigation: NavigationItem[] = navigationSections.flatMap(
+  (section) => section.items,
+);
+
+export const periodTabs = ["Aujourd'hui", "Semaine", "Mois"];

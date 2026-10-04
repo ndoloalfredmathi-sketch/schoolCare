@@ -10,10 +10,10 @@ function TitleBar() {
   };
 
   return (
-    <header className="flex h-10 select-none items-center border-b border-line bg-chrome text-sm text-slate-300">
+    <header className="flex h-10 select-none items-center border-b border-base-content/10 bg-base-100 text-sm text-base-content">
       {/* Zone déplaçable */}
       <div className="flex h-full flex-1 items-center gap-3 px-3 [-webkit-app-region:drag]">
-        <div className="flex h-4 w-4 items-center justify-center rounded bg-accent text-xs font-bold text-white">
+        <div className="flex h-4 w-4 items-center justify-center rounded bg-primary text-xs font-bold text-primary-content">
           S
         </div>
 
