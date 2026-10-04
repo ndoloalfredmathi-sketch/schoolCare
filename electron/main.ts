@@ -41,9 +41,6 @@ function createMainWindow() {
     title: "SchoolCare",
     frame: false,
     titleBarStyle: "hidden",
-    transparent: true,
-    backgroundColor: "#00000000",
-    roundedCorners: false,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,

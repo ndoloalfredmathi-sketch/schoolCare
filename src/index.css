@@ -9,7 +9,6 @@ body {
   margin: 0;
 }
 
-html,
-body {
-  background: transparent;
+body{
+  background: "transparent";
 }
