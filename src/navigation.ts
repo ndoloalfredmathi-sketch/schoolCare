@@ -1,9 +1,12 @@
 import {
   CalendarX,
   ChartColumn,
+  ChartPie,
+  FileVolume,
   GraduationCap,
   HeartPulse,
   LayoutGrid,
+  ReceiptEuro,
   Settings,
   Users,
   UsersRound,
@@ -36,6 +39,14 @@ export const navigationSections: NavigationSection[] = [
       { to: "/absences", label: "Absences", icon: CalendarX },
       { to: "/infirmerie", label: "Infirmerie", icon: HeartPulse },
       { to: "/parents", label: "Parents", icon: UsersRound },
+    ],
+  },
+  {
+    label: "Logistiques",
+    items: [
+      { to: "/statistiques", label: "Statistiques", icon: ChartPie },
+      { to: "/salaires", label: "Suivi des salaires", icon: ReceiptEuro },
+      { to: "/factures", label: "Suivi des factures", icon: FileVolume },
     ],
   },
   {
