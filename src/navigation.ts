@@ -13,10 +13,16 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+export type NavigationTab = {
+  label: string;
+  to: string;
+};
+
 export type NavigationItem = {
   to: string;
   label: string;
   icon: LucideIcon;
+  tabs?: NavigationTab[];
 };
 
 export type NavigationSection = {
@@ -30,7 +36,17 @@ export const navigationSections: NavigationSection[] = [
     items: [
       { to: "/", label: "Accueil", icon: LayoutGrid },
       { to: "/classes", label: "Classes", icon: GraduationCap },
-      { to: "/eleves", label: "Élèves", icon: Users },
+      {
+        to: "/eleves",
+        label: "Élèves",
+        icon: Users,
+        tabs: [
+          { label: "Liste des élèves", to: "liste" },
+          { label: "Inscriptions", to: "inscriptions" },
+          { label: "Dossiers", to: "dossiers" },
+          { label: "Diplômés", to: "diplomes" },
+        ],
+      },
     ],
   },
   {
