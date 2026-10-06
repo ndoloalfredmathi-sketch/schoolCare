@@ -4,11 +4,24 @@ import AppHeader from "./components/AppHeader";
 import SideBar from "./components/SideBar";
 import PlaceholderPage from "./pages/placeholder/PlaceholderPage";
 import StudentsListPage from "./pages/students/StudentsListPage";
+import StudentInscriptionsPage from "./pages/students/StudentInscriptionsPage";
 import {
   navigation,
   periodTabs,
   type NavigationItem,
 } from "./navigation";
+
+function pageFor(fullPath: string, title: string) {
+  if (fullPath === "/eleves/liste") {
+    return <StudentsListPage />;
+  }
+
+  if (fullPath === "/eleves/inscriptions") {
+    return <StudentInscriptionsPage />;
+  }
+
+  return <PlaceholderPage title={title} />;
+}
 
 function findCurrent(pathname: string): NavigationItem {
   const match = [...navigation]
@@ -56,13 +69,7 @@ function App() {
                     <Route
                       key={tab.to}
                       path={tab.to}
-                      element={
-                        `${to}/${tab.to}` === "/eleves/liste" ? (
-                          <StudentsListPage />
-                        ) : (
-                          <PlaceholderPage title={tab.label} />
-                        )
-                      }
+                      element={pageFor(`${to}/${tab.to}`, tab.label)}
                     />
                   ))}
                 </Route>

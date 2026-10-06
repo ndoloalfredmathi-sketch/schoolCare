@@ -1,10 +1,18 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { SchoolCareApi, StudentQuery } from "../src/types/models.js";
+import type {
+  SchoolCareApi,
+  StudentInput,
+  StudentQuery,
+} from "../src/types/models.js";
 
 const schoolCare: SchoolCareApi = {
   listClasses: () => ipcRenderer.invoke("classes:list"),
   listStudents: (query?: StudentQuery) =>
     ipcRenderer.invoke("students:list", query),
+  listRecentStudents: (limit?: number) =>
+    ipcRenderer.invoke("students:recent", limit),
+  createStudent: (input: StudentInput) =>
+    ipcRenderer.invoke("students:create", input),
   savePdf: (filename: string, data: ArrayBuffer) =>
     ipcRenderer.invoke("file:save-pdf", filename, data),
 };

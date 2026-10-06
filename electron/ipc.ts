@@ -2,9 +2,14 @@ import { app, ipcMain } from "electron";
 import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
-import type { StudentQuery } from "../src/types/models.js";
+import type { StudentInput, StudentQuery } from "../src/types/models.js";
 import { getDatabase } from "./db/index.js";
-import { listClasses, listStudents } from "./db/students.js";
+import {
+  createStudent,
+  listClasses,
+  listRecentStudents,
+  listStudents,
+} from "./db/students.js";
 
 async function uniquePath(
   directory: string,
@@ -30,6 +35,16 @@ export function registerIpc(): void {
     "students:list",
     (_event: unknown, query: StudentQuery | undefined) =>
       listStudents(getDatabase(), query ?? {}),
+  );
+
+  ipcMain.handle(
+    "students:recent",
+    (_event: unknown, limit: number | undefined) =>
+      listRecentStudents(getDatabase(), limit ?? 8),
+  );
+
+  ipcMain.handle("students:create", (_event: unknown, input: StudentInput) =>
+    createStudent(getDatabase(), input),
   );
 
   ipcMain.handle(
