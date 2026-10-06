@@ -3,6 +3,7 @@ import TitleBar from "./components/TitleBar";
 import AppHeader from "./components/AppHeader";
 import SideBar from "./components/SideBar";
 import PlaceholderPage from "./pages/placeholder/PlaceholderPage";
+import StudentsListPage from "./pages/students/StudentsListPage";
 import {
   navigation,
   periodTabs,
@@ -55,7 +56,13 @@ function App() {
                     <Route
                       key={tab.to}
                       path={tab.to}
-                      element={<PlaceholderPage title={tab.label} />}
+                      element={
+                        `${to}/${tab.to}` === "/eleves/liste" ? (
+                          <StudentsListPage />
+                        ) : (
+                          <PlaceholderPage title={tab.label} />
+                        )
+                      }
                     />
                   ))}
                 </Route>

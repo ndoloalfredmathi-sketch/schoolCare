@@ -1,4 +1,13 @@
 import { contextBridge, ipcRenderer } from "electron";
+import type { SchoolCareApi, StudentQuery } from "../src/types/models.js";
+
+const schoolCare: SchoolCareApi = {
+  listClasses: () => ipcRenderer.invoke("classes:list"),
+  listStudents: (query?: StudentQuery) =>
+    ipcRenderer.invoke("students:list", query),
+  savePdf: (filename: string, data: ArrayBuffer) =>
+    ipcRenderer.invoke("file:save-pdf", filename, data),
+};
 
 contextBridge.exposeInMainWorld("electronWindow", {
   minimize: () => ipcRenderer.send("window-minimize"),
@@ -13,3 +22,5 @@ contextBridge.exposeInMainWorld("electronWindow", {
     return () => ipcRenderer.removeListener("window-maximized-changed", listener);
   },
 });
+
+contextBridge.exposeInMainWorld("schoolCare", schoolCare);

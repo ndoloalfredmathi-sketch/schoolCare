@@ -1,3 +1,5 @@
+import type { SchoolCareApi } from "./models";
+
 export {};
 
 declare global {
@@ -9,5 +11,6 @@ declare global {
       isMaximized: () => Promise<boolean>;
       onMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
     };
+    schoolCare: SchoolCareApi;
   }
 }

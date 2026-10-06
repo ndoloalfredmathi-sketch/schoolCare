@@ -1,6 +1,8 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { registerIpc } from "./ipc.js";
+import { getDatabase } from "./db/index.js";
 
 let splashWindow: BrowserWindow | null = null;
 let mainWindow: BrowserWindow | null = null;
@@ -109,6 +111,8 @@ ipcMain.handle("window-is-maximized", (event) => {
 });
 
 app.whenReady().then(() => {
+  getDatabase();
+  registerIpc();
   createSplashWindow();
   createMainWindow();
 });
