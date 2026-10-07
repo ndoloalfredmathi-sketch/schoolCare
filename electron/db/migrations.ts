@@ -71,6 +71,29 @@ const migrations: { version: number; sql: string }[] = [
       );
     `,
   },
+  {
+    // Suivi des absences. Une ligne par demi-journée : `period` vaut 'full'
+    // lorsqu'une absence couvre la journée entière.
+    version: 5,
+    sql: `
+      CREATE TABLE absences (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+        date TEXT NOT NULL,
+        period TEXT NOT NULL CHECK (period IN ('full', 'am', 'pm')),
+        justified INTEGER NOT NULL DEFAULT 0 CHECK (justified IN (0, 1)),
+        reason TEXT,
+        recorded_by TEXT NOT NULL DEFAULT 'system',
+        created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f','now')),
+        updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f','now')),
+        UNIQUE (student_id, date, period)
+      );
+
+      CREATE INDEX idx_absences_date ON absences(date);
+      CREATE INDEX idx_absences_student ON absences(student_id, date);
+      CREATE INDEX idx_absences_period ON absences(date, period);
+    `,
+  },
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.reduce(

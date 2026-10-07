@@ -10,6 +10,7 @@ import {
   getDatabasePath,
 } from "../electron/db/index.js";
 import { listClasses, listStudents } from "../electron/db/students.js";
+import { LATEST_SCHEMA_VERSION } from "../electron/db/migrations.js";
 
 const LEGACY_DIR = "legacy";
 
@@ -61,14 +62,19 @@ function userVersion(database: DatabaseSync): number {
 }
 
 export function registerMigrationTests(): void {
-  test("une base neuve est créée puis migrée jusqu'à la version 4", () => {
+  test("une base neuve est créée puis migrée jusqu'à la dernière version", () => {
     withFreshDatabase("fresh", () => {
       const database = getDatabase();
 
-      assertEquals(userVersion(database), 4, "version de schéma");
+      assertEquals(
+        userVersion(database),
+        LATEST_SCHEMA_VERSION,
+        "version de schéma",
+      );
       assertEquals(listClasses(database).length, 6, "classes de démonstration");
       assertEquals(listStudents(database, {}).length, 48, "élèves de démonstration");
       assert(tableExists(database, "audit_log"), "audit_log doit exister");
+      assert(tableExists(database, "absences"), "absences doit exister");
     });
   });
 
@@ -141,7 +147,11 @@ export function registerMigrationTests(): void {
     withLegacyDatabase(() => {
       const database = getDatabase();
 
-      assertEquals(userVersion(database), 4, "version après migration");
+      assertEquals(
+        userVersion(database),
+        LATEST_SCHEMA_VERSION,
+        "version après migration",
+      );
 
       const students = listStudents(database, {});
       assertEquals(students.length, 2, "les deux élèves d'origine sont conservés");

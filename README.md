@@ -97,13 +97,52 @@ La page **Paramètres** permet de :
 | `npm run dist:mac` | Image disque macOS |
 | `npm run dist:linux` | AppImage Linux |
 
-## Tests
+## Suivi des absences
 
+L'écran **Absences** fonctionne en deux modes, depuis une seule page :
+
+**Saisie du jour** — choisissez une classe et une date, puis cliquez sur une
+demi-journée pour basculer présence et absence. Une **journée entière** marque le
+matin et l'après-midi d'un seul geste. Un motif saisi en haut de la grille est
+appliqué aux absences que vous marquez ensuite, et le bouton de justification
+bascule « non justifiée / justifiée » pour les absences du jour. Un compteur
+`x absent(s) sur y` suit la saisie.
+
+**Historique** — filtre par période et par classe, avec le motif, l'état de
+justification et l'auteur de la saisie. Chaque ligne peut être supprimée.
+
+Sur la **fiche élève**, une section Absences récapitule les demi-journées
+cumulées, les absences justifiées et non justifiées, et les dix derniers
+enregistrements.
+
+### Modèle de données
+
+Une ligne dans `absences` représente **une demi-journée** :
+
+| Colonne | Rôle |
+| --- | --- |
+| `student_id` | Élève concerné (`ON DELETE CASCADE`) |
+| `date` | Jour de l'absence, AAAA-MM-JJ |
+| `period` | `full` (journée), `am` (matin) ou `pm` (après-midi) |
+| `justified` | Absence justifiée ou non |
+| `reason` | Motif libre, 200 caractères maximum |
+| `recorded_by` | Identifiant de la personne qui a saisi |
+
+La contrainte `UNIQUE (student_id, date, period)` rend le doublon impossible :
+c'est aussi ce qui fait du basculement une opération sûre. Une absence n'est
+acceptée que pour un élève existant, et la date doit être un jour réel du
+calendrier.
+
+Chaque création, modification et suppression est journalisée dans `audit_log`
+avec l'utilisateur connecté, y compris les suppressions issues du basculement —
+retirer une absence par erreur reste donc traçable.
+
+## Tests
 ```bash
 npm test
 ```
 
-Les 50 tests couvrent le socle de données, c'est-à-dire tout ce qui peut
+Les 65 tests couvrent le socle de données, c'est-à-dire tout ce qui peut
 corrompre ou perdre des informations :
 
 | Suite | Ce qui est vérifié |
@@ -111,7 +150,8 @@ corrompre ou perdre des informations :
 | **Migrations** | Création d'une base neuve, migration d'une base v2 réelle sans perte de données, idempotence, rollback d'une migration en échec, activation des clés étrangères et du mode WAL |
 | **Mots de passe** | Dérivation PBKDF2, sel aléatoire, comparaison à temps constant, caractères Unicode, robustesse face à un hachage corrompu |
 | **Authentification** | Verrouillage après 5 échecs, expiration après 30 min d'inactivité, changement de mot de passe imposé puis rotation, comptes désactivés |
-| **Élèves** | CRUD, validation des entrées (noms, classes, dates réelles dont années bissextiles), attribution des matricules, filtres et recherche, journal d'audit avant/après |
+| **Élèves** | CRUD, validation des entrées (noms, classes, dates réelles dont années bissextiles), attribution des matricules, filtres et recherche, journal d'audit avant/après, pagination |
+| **Absences** | Saisie, contrainte d'unicité par demi-journée, basculement et sa journalisation, filtres et bornes de dates, cumul des demi-journées, saisie rapide par classe, suppression en cascade |
 | **Sauvegardes** | Création, inspection, refus d'un fichier étranger, rétention, restauration complète, export |
 
 Quelques principes :
@@ -183,6 +223,7 @@ Versions actuelles :
 | 2 | `students.updated_at` + table `audit_log` |
 | 3 | Horodatages en millisecondes (précision à la seconde insuffisante) |
 | 4 | Authentification : `password_hash`, `must_change_password`, `last_login_at` |
+| 5 | Suivi des absences : table `absences` |
 
 **Pour faire évoluer le schéma**, ajoutez une entrée à la fin du tableau
 `migrations` dans `electron/db/migrations.ts`. Ne modifiez **jamais** une
@@ -266,7 +307,7 @@ sauvegarde.
 ## Ce qui reste à faire
 
 - [ ] CRUD complet des classes (aujourd'hui en lecture seule et sans écran)
-- [ ] Écrans Absences, Infirmerie, Parents, Statistiques, Salaires, Factures
+- [ ] Écrans Infirmerie, Parents, Statistiques, Salaires, Factures
 - [ ] Gestion des utilisateurs dans l'interface (rôles `teacher`, `parent`,
       `student` existent en base mais ne sont pas exploitables)
 - [ ] Recherche globale et notifications (boutons retirés, ils étaient inertes)

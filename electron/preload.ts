@@ -1,6 +1,8 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { IpcRendererEvent } from "electron";
 import type {
+  AbsenceInput,
+  AbsenceQuery,
   SchoolCareApi,
   StudentInput,
   StudentQuery,
@@ -29,6 +31,21 @@ const schoolCare: SchoolCareApi = {
   deleteStudent: (id: number) => ipcRenderer.invoke("students:delete", id),
   listStudentAudit: (id: number, limit?: number) =>
     ipcRenderer.invoke("students:audit", id, limit),
+  listAbsences: (query?: AbsenceQuery) =>
+    ipcRenderer.invoke("absences:list", query),
+  countAbsences: (query?: AbsenceQuery) =>
+    ipcRenderer.invoke("absences:count", query),
+  listAttendance: (classId: number, date: string) =>
+    ipcRenderer.invoke("absences:attendance", classId, date),
+  getAbsenceSummary: (studentId: number) =>
+    ipcRenderer.invoke("absences:summary", studentId),
+  createAbsence: (input: AbsenceInput) =>
+    ipcRenderer.invoke("absences:create", input),
+  updateAbsence: (id: number, input: AbsenceInput) =>
+    ipcRenderer.invoke("absences:update", id, input),
+  deleteAbsence: (id: number) => ipcRenderer.invoke("absences:delete", id),
+  toggleAbsence: (input: AbsenceInput) =>
+    ipcRenderer.invoke("absences:toggle", input),
   listBackups: () => ipcRenderer.invoke("backup:list"),
   createBackup: () => ipcRenderer.invoke("backup:create"),
   exportBackup: () => ipcRenderer.invoke("backup:export"),

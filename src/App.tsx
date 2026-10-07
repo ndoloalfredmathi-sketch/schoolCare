@@ -11,6 +11,7 @@ import StudentsListPage from "./pages/students/StudentsListPage";
 import StudentInscriptionsPage from "./pages/students/StudentInscriptionsPage";
 import StudentDossiersPage from "./pages/students/StudentDossiersPage";
 import StudentDossierPage from "./pages/students/StudentDossierPage";
+import AbsencesPage from "./pages/absences/AbsencesPage";
 import { getAuthState, logout } from "./services/api";
 import { navigation, type NavigationItem } from "./navigation";
 import type { AuthState, AuthUser } from "./types/models";
@@ -23,6 +24,7 @@ const pages: Record<string, () => React.ReactElement> = {
   "/eleves/liste": StudentsListPage,
   "/eleves/inscriptions": StudentInscriptionsPage,
   "/eleves/dossiers": StudentDossiersPage,
+  "/absences": AbsencesPage,
   "/parametres": SettingsPage,
 };
 

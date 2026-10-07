@@ -16,6 +16,10 @@ test-dist
 *.tsbuildinfo
 release
 
+# Données de vérification locales (bases isolées, rapports)
+.smoke-data
+.verify-data
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -14,6 +14,7 @@ import {
   runDailyBackup,
 } from "../electron/db/backup.js";
 import { createStudent, listStudents } from "../electron/db/students.js";
+import { LATEST_SCHEMA_VERSION } from "../electron/db/migrations.js";
 import type { StudentInput } from "../src/types/models.js";
 
 function studentInput(classId: number, lastName: string): StudentInput {
@@ -245,7 +246,11 @@ export function registerBackupTests(): void {
       const version = reopened.prepare("PRAGMA user_version").get() as {
         user_version: number;
       };
-      assertEquals(version.user_version, 4, "le schéma de la sauvegarde est préservé");
+      assertEquals(
+        version.user_version,
+        LATEST_SCHEMA_VERSION,
+        "le schéma de la sauvegarde est préservé",
+      );
     } finally {
       closeDatabase();
     }
@@ -267,7 +272,11 @@ export function registerBackupTests(): void {
         user_version: number;
       };
 
-      assertEquals(version.user_version, 4, "version de schéma après restauration");
+      assertEquals(
+        version.user_version,
+        LATEST_SCHEMA_VERSION,
+        "version de schéma après restauration",
+      );
       assertEquals(listStudents(reopened, {}).length, 48, "population restaurée");
     } finally {
       closeDatabase();

@@ -1,5 +1,10 @@
 import type {
+  Absence,
+  AbsenceInput,
+  AbsenceQuery,
+  AbsenceSummary,
   AccountOption,
+  AttendanceRow,
   AuditEntry,
   AuthState,
   BackupInfo,
@@ -75,6 +80,50 @@ export function listStudentAudit(
   limit?: number,
 ): Promise<AuditEntry[]> {
   return window.schoolCare.listStudentAudit(id, limit);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Absences                                                                   */
+/* -------------------------------------------------------------------------- */
+
+export function listAbsences(query?: AbsenceQuery): Promise<Absence[]> {
+  return window.schoolCare.listAbsences(query);
+}
+
+export function countAbsences(query?: AbsenceQuery): Promise<number> {
+  return window.schoolCare.countAbsences(query);
+}
+
+export function listAttendance(
+  classId: number,
+  date: string,
+): Promise<AttendanceRow[]> {
+  return window.schoolCare.listAttendance(classId, date);
+}
+
+export function getAbsenceSummary(studentId: number): Promise<AbsenceSummary> {
+  return window.schoolCare.getAbsenceSummary(studentId);
+}
+
+export function createAbsence(input: AbsenceInput): Promise<Absence> {
+  return window.schoolCare.createAbsence(input);
+}
+
+export function updateAbsence(
+  id: number,
+  input: AbsenceInput,
+): Promise<Absence> {
+  return window.schoolCare.updateAbsence(id, input);
+}
+
+export function deleteAbsence(id: number): Promise<Absence> {
+  return window.schoolCare.deleteAbsence(id);
+}
+
+export function toggleAbsence(
+  input: AbsenceInput,
+): Promise<{ absent: boolean; absenceId: number | null }> {
+  return window.schoolCare.toggleAbsence(input);
 }
 
 export function listBackups(): Promise<BackupInfo[]> {

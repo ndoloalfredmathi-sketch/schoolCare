@@ -4,6 +4,8 @@ import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
 import type {
+  AbsenceInput,
+  AbsenceQuery,
   RestoreResult,
   StudentInput,
   StudentQuery,
@@ -24,6 +26,16 @@ import {
   logout,
   requireAuthenticated,
 } from "./auth/session.js";
+import {
+  countAbsences,
+  createAbsence,
+  deleteAbsence,
+  getAbsenceSummary,
+  listAbsences,
+  listAttendance,
+  toggleAbsence,
+  updateAbsence,
+} from "./db/absences.js";
 import {
   createStudent,
   deleteStudent,
@@ -149,6 +161,56 @@ export function registerIpc(): void {
     "students:audit",
     (_event: IpcMainInvokeEvent, id: number, limit: number | undefined) =>
       listAuditForStudent(authorizedDatabase(), id, limit ?? 20),
+  );
+
+  /* ---------------------------------------------------------------------- */
+  /* Absences                                                               */
+  /* ---------------------------------------------------------------------- */
+
+  ipcMain.handle(
+    "absences:list",
+    (_event: IpcMainInvokeEvent, query: AbsenceQuery | undefined) =>
+      listAbsences(authorizedDatabase(), query ?? {}),
+  );
+
+  ipcMain.handle(
+    "absences:count",
+    (_event: IpcMainInvokeEvent, query: AbsenceQuery | undefined) =>
+      countAbsences(authorizedDatabase(), query ?? {}),
+  );
+
+  ipcMain.handle(
+    "absences:attendance",
+    (_event: IpcMainInvokeEvent, classId: number, date: string) =>
+      listAttendance(authorizedDatabase(), classId, date),
+  );
+
+  ipcMain.handle(
+    "absences:summary",
+    (_event: IpcMainInvokeEvent, studentId: number) =>
+      getAbsenceSummary(authorizedDatabase(), studentId),
+  );
+
+  ipcMain.handle(
+    "absences:create",
+    (_event: IpcMainInvokeEvent, input: AbsenceInput) =>
+      createAbsence(authorizedDatabase(), input),
+  );
+
+  ipcMain.handle(
+    "absences:update",
+    (_event: IpcMainInvokeEvent, id: number, input: AbsenceInput) =>
+      updateAbsence(authorizedDatabase(), id, input),
+  );
+
+  ipcMain.handle("absences:delete", (_event: IpcMainInvokeEvent, id: number) =>
+    deleteAbsence(authorizedDatabase(), id),
+  );
+
+  ipcMain.handle(
+    "absences:toggle",
+    (_event: IpcMainInvokeEvent, input: AbsenceInput) =>
+      toggleAbsence(authorizedDatabase(), input),
   );
 
   ipcMain.handle(

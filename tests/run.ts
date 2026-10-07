@@ -15,6 +15,7 @@ import { registerMigrationTests } from "./migrations.test.ts";
 import { registerPasswordTests } from "./password.test.ts";
 import { registerAuthTests } from "./auth.test.ts";
 import { registerStudentTests } from "./students.test.ts";
+import { registerAbsenceTests } from "./absences.test.ts";
 import { registerBackupTests } from "./backup.test.ts";
 
 const BASE_DIR = path.join(os.tmpdir(), "schoolcare-tests");
@@ -34,6 +35,7 @@ async function main(): Promise<void> {
     { name: "Mots de passe", register: registerPasswordTests },
     { name: "Authentification", register: registerAuthTests },
     { name: "Élèves", register: registerStudentTests },
+    { name: "Absences", register: registerAbsenceTests },
     { name: "Sauvegardes", register: registerBackupTests },
   ]);
 

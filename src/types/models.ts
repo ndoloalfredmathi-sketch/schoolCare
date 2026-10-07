@@ -68,6 +68,80 @@ export type AuditEntry = {
   createdAt: string;
 };
 
+/* -------------------------------------------------------------------------- */
+/* Absences                                                                   */
+/* -------------------------------------------------------------------------- */
+
+/** Demi-journée concernée par une absence. `full` couvre la journée entière. */
+export type AbsencePeriod = "full" | "am" | "pm";
+
+export const ABSENCE_PERIODS: AbsencePeriod[] = ["full", "am", "pm"];
+
+export const ABSENCE_PERIOD_LABELS: Record<AbsencePeriod, string> = {
+  full: "Journée",
+  am: "Matin",
+  pm: "Après-midi",
+};
+
+export type Absence = {
+  id: number;
+  studentId: number;
+  matricule: string;
+  lastName: string;
+  firstName: string;
+  classId: number | null;
+  className: string | null;
+  /** Format AAAA-MM-JJ. */
+  date: string;
+  period: AbsencePeriod;
+  justified: boolean;
+  reason: string | null;
+  recordedBy: string;
+  createdAt: string;
+};
+
+export type AbsenceInput = {
+  studentId: number;
+  date: string;
+  period: AbsencePeriod;
+  justified: boolean;
+  reason: string | null;
+};
+
+export type AbsenceQuery = {
+  studentId?: number;
+  classIds?: number[];
+  /** Borne inclusive au format AAAA-MM-JJ. */
+  from?: string;
+  to?: string;
+  justified?: boolean;
+  limit?: number;
+  offset?: number;
+};
+
+/** Ligne de la saisie rapide : un élève et les demi-journées déjà marquées. */
+export type AttendanceRow = {
+  studentId: number;
+  matricule: string;
+  lastName: string;
+  firstName: string;
+  classId: number | null;
+  className: string | null;
+  periods: AbsencePeriod[];
+  justified: boolean;
+  reason: string | null;
+};
+
+export type AbsenceSummary = {
+  studentId: number;
+  /** Nombre d'enregistrements, une journée comptant pour une ligne. */
+  total: number;
+  /** Nombre de demi-journées : une journée vaut 2. */
+  halfDays: number;
+  justified: number;
+  unjustified: number;
+};
+
 export type BackupInfo = {
   fileName: string;
   path: string;
@@ -111,6 +185,16 @@ export type SchoolCareApi = {
   updateStudent: (id: number, input: StudentInput) => Promise<Student>;
   deleteStudent: (id: number) => Promise<Student>;
   listStudentAudit: (id: number, limit?: number) => Promise<AuditEntry[]>;
+  listAbsences: (query?: AbsenceQuery) => Promise<Absence[]>;
+  countAbsences: (query?: AbsenceQuery) => Promise<number>;
+  listAttendance: (classId: number, date: string) => Promise<AttendanceRow[]>;
+  getAbsenceSummary: (studentId: number) => Promise<AbsenceSummary>;
+  createAbsence: (input: AbsenceInput) => Promise<Absence>;
+  updateAbsence: (id: number, input: AbsenceInput) => Promise<Absence>;
+  deleteAbsence: (id: number) => Promise<Absence>;
+  toggleAbsence: (
+    input: AbsenceInput,
+  ) => Promise<{ absent: boolean; absenceId: number | null }>;
   listBackups: () => Promise<BackupInfo[]>;
   createBackup: () => Promise<BackupInfo>;
   exportBackup: () => Promise<BackupInfo | null>;

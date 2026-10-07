@@ -28,6 +28,7 @@ import {
   statusLabel,
 } from "../../lib/labels";
 import { StudentEditForm } from "./StudentEditForm";
+import { StudentAbsencesCard } from "./StudentAbsencesCard";
 import type { AuditEntry, ClassRoom, Student } from "../../types/models";
 
 const actionLabels: Record<string, string> = {
@@ -412,6 +413,8 @@ function StudentDossierPage() {
           )}
         </div>
       </div>
+
+      <StudentAbsencesCard studentId={student.id} refreshToken={reloadToken} />
 
       <div className="card border border-base-content/10 bg-base-200">
         <div className="card-body gap-4 p-5">
