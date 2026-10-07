@@ -76,8 +76,11 @@ export function seedDemoData(database: DatabaseSync): void {
   }
 
   const insertStudent = database.prepare(
-    `INSERT INTO students (matricule, last_name, first_name, gender, birth_date, class_id, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO students
+       (matricule, last_name, first_name, gender, birth_date, class_id, status, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?,
+             strftime('%Y-%m-%d %H:%M:%f','now'),
+             strftime('%Y-%m-%d %H:%M:%f','now'))`,
   );
 
   let total = 0;

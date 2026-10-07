@@ -14,6 +14,21 @@ export default defineConfig({
       },
       preload: {
         input: 'electron/preload.ts',
+        // Le preload est compilé en CommonJS (require) par le plugin, mais son
+        // extension par défaut suit le "type": "module" du package.json et devient
+        // ".mjs" — un fichier que Node traite comme ESM. Electron échoue alors à
+        // charger le preload et window.schoolCare reste undefined.
+        // On force donc une extension cohérente avec le format réellement produit.
+        vite: {
+          build: {
+            rolldownOptions: {
+              output: {
+                format: 'cjs',
+                entryFileNames: 'preload.cjs',
+              },
+            },
+          },
+        },
       },
     }),
   ],

@@ -13,8 +13,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export type NavigationTab = {
+export type NavigationChild = {
+  /** Libellé affiché dans le fil d'Ariane. */
   label: string;
+  /** Chemin absolu de la sous-page. */
   to: string;
 };
 
@@ -22,7 +24,7 @@ export type NavigationItem = {
   to: string;
   label: string;
   icon: LucideIcon;
-  tabs?: NavigationTab[];
+  children?: NavigationChild[];
 };
 
 export type NavigationSection = {
@@ -40,11 +42,11 @@ export const navigationSections: NavigationSection[] = [
         to: "/eleves",
         label: "Élèves",
         icon: Users,
-        tabs: [
-          { label: "Liste des élèves", to: "liste" },
-          { label: "Inscriptions", to: "inscriptions" },
-          { label: "Dossiers", to: "dossiers" },
-          { label: "Diplômés", to: "diplomes" },
+        children: [
+          { label: "Liste des élèves", to: "/eleves/liste" },
+          { label: "Inscriptions", to: "/eleves/inscriptions" },
+          { label: "Dossiers", to: "/eleves/dossiers" },
+          { label: "Diplômés", to: "/eleves/diplomes" },
         ],
       },
     ],
@@ -77,5 +79,3 @@ export const navigationSections: NavigationSection[] = [
 export const navigation: NavigationItem[] = navigationSections.flatMap(
   (section) => section.items,
 );
-
-export const periodTabs = ["Aujourd'hui", "Semaine", "Mois"];

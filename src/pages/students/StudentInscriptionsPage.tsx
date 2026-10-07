@@ -7,23 +7,12 @@ import {
   listClasses,
   listRecentStudents,
 } from "../../services/api";
+import { errorMessage, genderLabel } from "../../lib/labels";
 import type { ClassRoom, Gender, Student } from "../../types/models";
 
 const genderOrder: Gender[] = ["F", "M"];
 
-const genderLabels: Record<Gender, string> = {
-  F: "Féminin",
-  M: "Masculin",
-};
-
 const recentLimit = 8;
-
-function errorMessage(cause: unknown): string {
-  const raw = String(cause);
-  const marker = raw.lastIndexOf("Error: ");
-
-  return marker >= 0 ? raw.slice(marker + 7) : raw;
-}
 
 function StudentInscriptionsPage() {
   const [lastName, setLastName] = useState("");
@@ -227,7 +216,7 @@ function StudentInscriptionsPage() {
                         checked={gender === value}
                         onChange={() => setGender(value)}
                       />
-                      {genderLabels[value]}
+                      {genderLabel(value)}
                     </label>
                   ))}
                 </div>
@@ -341,7 +330,7 @@ function StudentInscriptionsPage() {
                           {student.className ?? "—"}
                         </td>
                         <td className="whitespace-nowrap text-base-content/70">
-                          {student.gender === "F" ? "Féminin" : "Masculin"}
+                          {genderLabel(student.gender)}
                         </td>
                         <td className="whitespace-nowrap text-base-content/70">
                           {student.birthDate ?? "—"}

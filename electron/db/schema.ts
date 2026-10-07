@@ -1,6 +1,11 @@
+/**
+ * Schéma de base de SchoolCare (version 1).
+ *
+ * Toute évolution ultérieure doit passer par une migration dans `migrations.ts`
+ * et non par une modification de ce fichier : les bases déjà installées ne
+ * rejouent jamais `SCHEMA`.
+ */
 export const SCHEMA = `
-PRAGMA foreign_keys = ON;
-
 CREATE TABLE IF NOT EXISTS roles (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   key TEXT NOT NULL UNIQUE,

@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
+import type { IpcRendererEvent } from "electron";
 import type {
   SchoolCareApi,
   StudentInput,
@@ -6,13 +7,32 @@ import type {
 } from "../src/types/models.js";
 
 const schoolCare: SchoolCareApi = {
+  listAccounts: () => ipcRenderer.invoke("auth:accounts"),
+  login: (userId: number, password: string) =>
+    ipcRenderer.invoke("auth:login", userId, password),
+  logout: () => ipcRenderer.invoke("auth:logout"),
+  getAuthState: () => ipcRenderer.invoke("auth:state"),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    ipcRenderer.invoke("auth:change-password", currentPassword, newPassword),
   listClasses: () => ipcRenderer.invoke("classes:list"),
   listStudents: (query?: StudentQuery) =>
     ipcRenderer.invoke("students:list", query),
+  listStudentsPage: (query?: StudentQuery) =>
+    ipcRenderer.invoke("students:page", query),
+  getStudent: (id: number) => ipcRenderer.invoke("students:get", id),
   listRecentStudents: (limit?: number) =>
     ipcRenderer.invoke("students:recent", limit),
   createStudent: (input: StudentInput) =>
     ipcRenderer.invoke("students:create", input),
+  updateStudent: (id: number, input: StudentInput) =>
+    ipcRenderer.invoke("students:update", id, input),
+  deleteStudent: (id: number) => ipcRenderer.invoke("students:delete", id),
+  listStudentAudit: (id: number, limit?: number) =>
+    ipcRenderer.invoke("students:audit", id, limit),
+  listBackups: () => ipcRenderer.invoke("backup:list"),
+  createBackup: () => ipcRenderer.invoke("backup:create"),
+  exportBackup: () => ipcRenderer.invoke("backup:export"),
+  restoreBackup: () => ipcRenderer.invoke("backup:restore"),
   savePdf: (filename: string, data: ArrayBuffer) =>
     ipcRenderer.invoke("file:save-pdf", filename, data),
 };
@@ -23,7 +43,8 @@ contextBridge.exposeInMainWorld("electronWindow", {
   close: () => ipcRenderer.send("window-close"),
   isMaximized: () => ipcRenderer.invoke("window-is-maximized"),
   onMaximizedChange: (callback: (isMaximized: boolean) => void) => {
-    const listener = (_event: unknown, maximized: boolean) => callback(maximized);
+    const listener = (_event: IpcRendererEvent, maximized: boolean) =>
+      callback(maximized);
 
     ipcRenderer.on("window-maximized-changed", listener);
 

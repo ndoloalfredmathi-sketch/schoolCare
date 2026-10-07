@@ -2,36 +2,27 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import clsx from "clsx";
 import { CircleAlert, CircleCheck, Download, Search, SlidersHorizontal, Users, X } from "lucide-react";
-import { listClasses, listStudents } from "../../services/api";
+import { listClasses, listStudents, listStudentsPage } from "../../services/api";
 import { savePdf } from "../../services/exportPdf";
 import {
   StudentListDocument,
   StudentProfileDocument,
 } from "../../pdf/studentDocuments";
+import { errorMessage, genderLabel, statusClass, statusLabels } from "../../lib/labels";
+import { DEFAULT_PAGE_SIZE, PAGE_SIZES } from "../../types/models";
 import type {
   ClassRoom,
   Gender,
-  Student,
+  PageSize,
+  StudentPage,
   StudentStatus,
 } from "../../types/models";
-
-const statusClass: Record<StudentStatus, string> = {
-  active: "bg-success/15 text-success",
-  inactive: "bg-base-content/10 text-base-content/50",
-};
 
 const statusOrder: StudentStatus[] = ["active", "inactive"];
 const genderOrder: Gender[] = ["F", "M"];
 
-const statusLabels: Record<StudentStatus, string> = {
-  active: "Actifs",
-  inactive: "Sortis",
-};
-
-const genderLabels: Record<Gender, string> = {
-  F: "Féminin",
-  M: "Masculin",
-};
+const pagerClass =
+  "flex h-7 w-7 items-center justify-center rounded-full border border-base-content/15 bg-base-300 text-sm text-base-content/70 transition hover:border-base-content/30 hover:bg-base-content/10 hover:text-base-content disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-base-content/15 disabled:hover:bg-base-300";
 
 type Chip = {
   id: string;
@@ -111,15 +102,20 @@ function StudentsListPage() {
   const [exporting, setExporting] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [classes, setClasses] = useState<ClassRoom[]>([]);
-  const [result, setResult] = useState<{ key: string; rows: Student[] } | null>(
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSize>(DEFAULT_PAGE_SIZE);
+  const [result, setResult] = useState<{ key: string; page: StudentPage } | null>(
     null,
   );
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
 
   const filtersRef = useRef<HTMLDivElement>(null);
+  const selectAllRef = useRef<HTMLInputElement>(null);
+  const lastQueryKeyRef = useRef<string | null>(null);
 
-  const query = useMemo(
+  /** Filtres seuls : ni pagination ni page, pour comparer deux requêtes. */
+  const filters = useMemo(
     () => ({
       search,
       classIds: [...classIds].sort((a, b) => a - b),
@@ -129,9 +125,33 @@ function StudentsListPage() {
     [search, classIds, statuses, genders],
   );
 
+  const filtersKey = JSON.stringify(filters);
+
+  /** Nombre total de résultats du filtre courant, et pages correspondantes. */
+  const total = result?.page.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  /**
+   * Page réellement affichée : si un filtre réduit le nombre de résultats, l'état
+   * peut pointer au-delà de la dernière page. On borne ici plutôt que par un
+   * effet correcteur, ce qui évite un rendu en cascade.
+   */
+  const safePage = Math.min(page, totalPages);
+
+  const query = useMemo(
+    () => ({
+      ...filters,
+      limit: pageSize,
+      offset: (safePage - 1) * pageSize,
+    }),
+    [filters, safePage, pageSize],
+  );
+
   const key = JSON.stringify(query);
   const loading = result === null || result.key !== key;
-  const students = useMemo(() => result?.rows ?? [], [result]);
+  const students = useMemo(() => result?.page.rows ?? [], [result]);
+  const firstRow = total === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const lastRow = total === 0 ? 0 : firstRow + students.length - 1;
 
   const chips = useMemo<Chip[]>(() => {
     const items: Chip[] = [];
@@ -162,7 +182,7 @@ function StudentsListPage() {
       for (const value of genders) {
         items.push({
           id: `gender-${value}`,
-          label: `Sexe : ${genderLabels[value]}`,
+          label: `Sexe : ${genderLabel(value)}`,
           onRemove: () =>
             setGenders((current) => current.filter((item) => item !== value)),
         });
@@ -211,11 +231,13 @@ function StudentsListPage() {
     });
   };
 
-  const applyHeaderIndeterminate = (node: HTMLInputElement | null) => {
-    if (node) {
-      node.indeterminate = someSelected && !allSelected;
+  // Une callback ref ne serait pas rappelée quand la sélection change : l'état
+  // "indéterminé" resterait figé sur sa valeur initiale.
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = someSelected && !allSelected;
     }
-  };
+  }, [someSelected, allSelected]);
 
   const handleExport = async () => {
     if (!canExport || exporting) {
@@ -227,30 +249,50 @@ function StudentsListPage() {
     setSaved(null);
 
     try {
-      const single = exportList.length === 1;
+      // Sans sélection, l'export porte sur l'intégralité du filtre et non sur la
+      // seule page affichée : on recharge donc toutes les lignes correspondantes.
+      const rows = hasSelection
+        ? exportList
+        : await listStudents({ ...filters, limit: 20_000, offset: 0 });
+
+      const single = rows.length === 1;
       const stamp = new Date().toISOString().slice(0, 10);
-      const filters = chips.map((chip) => chip.label).join(", ");
+      const filterLabels = chips.map((chip) => chip.label).join(", ");
 
       const path = await savePdf(
         single ? (
-          <StudentProfileDocument student={exportList[0]} />
+          <StudentProfileDocument student={rows[0]} />
         ) : (
-          <StudentListDocument students={exportList} filters={filters} />
+          <StudentListDocument students={rows} filters={filterLabels} />
         ),
         single
-          ? `fiche-${exportList[0].matricule}.pdf`
-          : `liste-eleves-${exportList.length}-${stamp}.pdf`,
+          ? `fiche-${rows[0].matricule}.pdf`
+          : `liste-eleves-${rows.length}-${stamp}.pdf`,
       );
 
       if (path) {
         setSaved(path);
       }
     } catch (cause) {
-      setError(String(cause));
+      setError(errorMessage(cause));
     } finally {
       setExporting(false);
     }
   };
+
+  useEffect(() => {
+    if (lastQueryKeyRef.current === filtersKey) {
+      return;
+    }
+
+    // La sélection est indexée par identifiant : si un filtre change, des élèves
+    // masqués resteraient sélectionnés et seraient inclus dans l'export, en
+    // contradiction avec le compteur affiché. On revient aussi à la première
+    // page : la pagination précédente n'a plus de sens.
+    lastQueryKeyRef.current = filtersKey;
+    setSelected([]);
+    setPage(1);
+  }, [filtersKey]);
 
   useEffect(() => {
     if (!filtersOpen) {
@@ -292,7 +334,7 @@ function StudentsListPage() {
       })
       .catch((cause: unknown) => {
         if (!cancelled) {
-          setError(String(cause));
+          setError(errorMessage(cause));
         }
       });
 
@@ -304,24 +346,33 @@ function StudentsListPage() {
   useEffect(() => {
     let cancelled = false;
 
-    listStudents(query)
+    listStudentsPage(query)
       .then((rows) => {
         if (!cancelled) {
-          setResult({ key, rows });
+          setResult({ key, page: rows });
           setError(null);
         }
       })
       .catch((cause: unknown) => {
         if (!cancelled) {
-          setResult({ key, rows: [] });
-          setError(String(cause));
+          setResult({
+            key,
+            page: {
+              rows: [],
+              count: 0,
+              total: 0,
+              limit: pageSize,
+              offset: query.offset,
+            },
+          });
+          setError(errorMessage(cause));
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [query, key]);
+  }, [query, key, pageSize]);
 
   const classesAllSelected =
     classes.length > 0 && classIds.length === classes.length;
@@ -432,7 +483,7 @@ function StudentsListPage() {
                       {genderOrder.map((value) => (
                         <FilterOption
                           key={value}
-                          label={genderLabels[value]}
+                          label={genderLabel(value)}
                           checked={genders.includes(value)}
                           onChange={() =>
                             setGenders((current) => toggleValue(current, value))
@@ -489,7 +540,11 @@ function StudentsListPage() {
             </button>
 
             <span className="ml-auto text-xs tabular-nums text-base-content/50">
-              {students.length} élève(s)
+              {loading
+                ? "Chargement…"
+                : total === 0
+                  ? "Aucun élève"
+                  : `${firstRow}–${lastRow} sur ${total} élève(s)`}
             </span>
           </div>
 
@@ -571,7 +626,7 @@ function StudentsListPage() {
                     <th className="w-10">
                       <input
                         type="checkbox"
-                        ref={applyHeaderIndeterminate}
+                        ref={selectAllRef}
                         checked={allSelected}
                         onChange={toggleAll}
                         disabled={students.length === 0}
@@ -614,7 +669,7 @@ function StudentsListPage() {
                         {student.className ?? "—"}
                       </td>
                       <td className="text-base-content/70">
-                        {student.gender === "F" ? "Féminin" : "Masculin"}
+                        {genderLabel(student.gender)}
                       </td>
                       <td className="text-base-content/70">
                         {student.birthDate ?? "—"}
@@ -633,6 +688,73 @@ function StudentsListPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          ) : null}
+
+          {!loading && total > 0 ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-base-content/10 pt-3">
+              <label className="flex items-center gap-2 text-xs text-base-content/50">
+                Lignes par page
+                <select
+                  value={pageSize}
+                  onChange={(event) =>
+                    setPageSize(Number(event.target.value) as PageSize)
+                  }
+                  aria-label="Nombre de lignes par page"
+                  className="select select-xs bg-base-300 text-base-content"
+                >
+                  {PAGE_SIZES.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs tabular-nums text-base-content/50">
+                  Page {safePage} / {totalPages}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setPage(1)}
+                  disabled={safePage === 1}
+                  aria-label="Première page"
+                  className={pagerClass}
+                >
+                  «
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                  disabled={safePage === 1}
+                  aria-label="Page précédente"
+                  className={pagerClass}
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPage((current) => Math.min(totalPages, current + 1))
+                  }
+                  disabled={safePage >= totalPages}
+                  aria-label="Page suivante"
+                  className={pagerClass}
+                >
+                  ›
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPage(totalPages)}
+                  disabled={safePage >= totalPages}
+                  aria-label="Dernière page"
+                  className={pagerClass}
+                >
+                  »
+                </button>
+              </div>
             </div>
           ) : null}
         </div>

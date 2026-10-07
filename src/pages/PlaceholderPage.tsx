@@ -2,6 +2,7 @@ type PlaceholderPageProps = {
   title: string;
 };
 
+/** Écran affiché pour les sections de l'application pas encore développées. */
 function PlaceholderPage({ title }: PlaceholderPageProps) {
   return (
     <div className="flex min-h-full items-center justify-center p-8">
